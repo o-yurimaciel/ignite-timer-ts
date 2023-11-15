@@ -157,7 +157,7 @@ export function Home() {
             type="button"
           >
             <HandPalm size={24} />
-            Interromper
+            Stop
           </StopCountdownButton>
         ) : (
           <StartCountdownButton disabled={isSubmitDisabled} type="submit">
