@@ -7,6 +7,9 @@ import {
 import { createContext, useState } from 'react'
 import { Countdown } from './components/Countdown'
 import { NewCycleForm } from './components/NewCycleForm'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { FormProvider, useForm } from 'react-hook-form'
+import * as zod from 'zod'
 
 interface Cycle {
   id: string
@@ -21,6 +24,8 @@ interface CyclesContextType {
   activeCycle: Cycle | undefined
   activeCycleId: string | null
   markCurrentCycleAsFinished: () => void
+  amountSecondsPassed: number
+  updateSecondsPassed: (seconds: number) => void
 }
 
 export const CyclesContext = createContext({} as CyclesContextType)
@@ -28,6 +33,7 @@ export const CyclesContext = createContext({} as CyclesContextType)
 export function Home() {
   const [cycles, setCycles] = useState<Cycle[]>([])
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+  const [amountSecondsPassed, setAmountsSecondsPassed] = useState(0)
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
@@ -45,6 +51,27 @@ export function Home() {
       }),
     )
   }
+
+  function updateSecondsPassed(seconds: number) {
+    setAmountsSecondsPassed(seconds)
+  }
+
+  const newCycleFormValidationSchema = zod.object({
+    task: zod.string().min(1, 'Write the task'),
+    minutesAmount: zod.number().min(1).max(60),
+  })
+
+  type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
+
+  const newCycleForm = useForm<NewCycleFormData>({
+    resolver: zodResolver(newCycleFormValidationSchema),
+    defaultValues: {
+      minutesAmount: 0,
+      task: '',
+    },
+  })
+
+  const { reset, handleSubmit, watch } = newCycleForm
 
   function handleCreateNewCycle(data: NewCycleFormData) {
     const id = String(new Date().getTime())
@@ -83,9 +110,17 @@ export function Home() {
     <HomeContainer>
       <form onSubmit={handleSubmit(handleCreateNewCycle)}>
         <CyclesContext.Provider
-          value={{ activeCycle, activeCycleId, markCurrentCycleAsFinished }}
+          value={{
+            activeCycle,
+            activeCycleId,
+            markCurrentCycleAsFinished,
+            amountSecondsPassed,
+            updateSecondsPassed,
+          }}
         >
-          <NewCycleForm></NewCycleForm>
+          <FormProvider {...newCycleForm}>
+            <NewCycleForm></NewCycleForm>
+          </FormProvider>
           <Countdown></Countdown>
         </CyclesContext.Provider>
         {activeCycle ? (
