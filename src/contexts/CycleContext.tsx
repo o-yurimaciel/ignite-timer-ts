@@ -78,7 +78,7 @@ export function CyclesContextProvider({
         if (cycle.id === activeCycleId) {
           return {
             ...cycle,
-            finishedDate: new Date(),
+            interruptedDate: new Date(),
           }
         } else {
           return cycle
